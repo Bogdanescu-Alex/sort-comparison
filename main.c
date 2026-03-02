@@ -32,22 +32,30 @@ void printArray(short *arr, short len) {
     }
     printf("]\n"); 
 }
-
+long long monteCarlo(short totalNrOfSimulations, void (*sortFunc)(short *, short), short *arr, short len) {
+    unsigned long long averageTime = 0;
+    unsigned int dummy;
+    for (short i = 0; i < totalNrOfSimulations; i++) {
+        short *arrCopy = (short *)malloc(len * sizeof(short));
+        for (short j = 0; j < len; j++) {
+            *(arrCopy + j) = *(arr + j);
+        }
+        unsigned long long start = __rdtscp(&dummy);
+        sortFunc(arrCopy, len);
+        unsigned long long end = __rdtscp(&dummy);
+        long sortTime = end - start;
+        averageTime += sortTime;
+        free(arrCopy);
+    }
+    return averageTime / totalNrOfSimulations;        
+}
 
 int main() {
     short n = 10000;
     short *arrayStart = (short *) malloc(n * sizeof(short));
     generateArray(arrayStart, n);
     
-    unsigned int dummy;
-    unsigned long long start = __rdtscp(&dummy);
-
-    insertSort(arrayStart, n);
-    
-    unsigned long long end = __rdtscp(&dummy);
-    long sortTime = end - start;
-
-    printf("TOOK %li CPU CYCLES", sortTime);
+    printf("TOOK %ld CPU CYCLES", monteCarlo(500, insertSort, arrayStart, n));
     // printArray(arrayStart, n);
     free(arrayStart);
     return 0;

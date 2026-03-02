@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(sortComparison LANGUAGES C)
+project(sortComparison)
 
 add_executable(main main.c)
 
