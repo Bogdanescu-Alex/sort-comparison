@@ -14,8 +14,17 @@ insert sort - Average Time over 5 simulations: 3.470800 seconds
 selection sort - Average Time over 5 simulations: 5.855600 seconds
 bubble sort - Average Time over 5 simulations: 28.887800 seconds
 
+for 1000 elements of [0, 999]
+quick sort - Average Time over 5 simulations: 0.000000000000000 seconds
+merge sort - Average Time over 5 simulations: 0.000000000000000 seconds
+insert sort - Average Time over 5 simulations: 0.000000000000000 seconds
+selection sort - Average Time over 5 simulations: 0.000000000000000 seconds
+bubble sort - Average Time over 5 simulations: 0.001200000000000 seconds
+
 Future Directions:
 - why is there such a big difference between selection/insert sort and bubble sort?
 - why is sorting for all except bubble sort slower when sorting [0, 99] elements compared to [0, 999] elements?
 - at what point is it more efficient to multi thread merge sort?
+- how do you benchmark time when necessary decimal places is over 15
+- how to stop caching (different result based on repetition of program)
 - is Hoare implementation of quick sort always better then Lomuto implementation?
