@@ -150,7 +150,7 @@ int main() {
 
     generateArray(arrayStart, n);
     
-    double avgSeconds = monteCarlo(simulations, quickSortWrapper, arrayStart, n);
+    double avgSeconds = monteCarlo(simulations, bubbleSort, arrayStart, n);
 
     // printArray(arrayStart, n);
     printf("Average Time over %ld simulations: %f seconds\n", simulations, avgSeconds);
