@@ -73,8 +73,8 @@ void mergeSortWrapper(long *arr, long len) {
     mergeSort(arr, 0, len - 1);
 }
 
-long quickSortPartition(long *arr, long low, long high) {
-    long pivot = arr[high];
+long quickSortPartition(long *arr, long low, long high) { // lomuto partition scheme    
+    long pivot = arr[high]; 
     long i = (low - 1);
     for (long j = low; j < high; j++) {
         if (arr[j] < pivot) {

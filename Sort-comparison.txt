@@ -1,0 +1,21 @@
+Sort-comparison
+
+for 100000 elements [0, 999]
+quick sort - Average Time over 5 simulations: 0.007200 seconds - faster then merge sort since we are not hitting the worst case scenario where we choose the worst pivot multiple times
+merge sort - Average Time over 5 simulations: 0.014200 seconds - faster then insert since O(nlogn) < O(n^2)
+insert sort - Average Time over 5 simulations: 2.877600 seconds - faster then selection sort since insert sort is natural
+selection sort - Average Time over 5 simulations: 6.826600 seconds
+bubble sort - Average Time over 5 simulations: 30.309800 seconds
+
+for 100000 elements [0, 99]
+quick sort - Average Time over 5 simulations: 0.062400 seconds
+merge sort - Average Time over 5 simulations: 0.024600 seconds
+insert sort - Average Time over 5 simulations: 3.470800 seconds
+selection sort - Average Time over 5 simulations: 5.855600 seconds
+bubble sort - Average Time over 5 simulations: 28.887800 seconds
+
+Future Directions:
+- why is there such a big difference between selection/insert sort and bubble sort?
+- why is sorting for all except bubble sort slower when sorting [0, 99] elements compared to [0, 999] elements?
+- at what point is it more efficient to multi thread merge sort?
+- is Hoare implementation of quick sort always better then Lomuto implementation?
