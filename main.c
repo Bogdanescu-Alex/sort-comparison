@@ -185,7 +185,7 @@ void runTest(const char* dataset_name, const char* algo_name, void (*sortFunc)(P
 
 int main() {
     srand(time(NULL));
-    int n = 2000;
+    int n = 25000;
     
     printf("--- start sort comparison ---\n");
     printf("array size: %d\n\n", n);
