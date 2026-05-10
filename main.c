@@ -1,161 +1,237 @@
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "database.h"
 
-void insertSort(long *arr, long len) {
-    for (long i = 1; i < len; ++i) {
-        long key = arr[i];
-        long j = i - 1;
+// used void* so it works for any type
+typedef void* Pointer;
+typedef int (*CompareFunction)(const void*, const void*);
 
-        while (j >= 0 && arr[j] > key) {
-            arr[j + 1] = arr[j];
-            j = j - 1;
-        }
-        arr[j + 1] = key;
-    }
+// just swaps two things in memory
+void swap_elements(Pointer a, Pointer b, int size) {
+    void* temp = malloc(size);
+    memcpy(temp, a, size);
+    memcpy(a, b, size);
+    memcpy(b, temp, size);
+    free(temp);
 }
 
-void bubbleSort(long *arr, long len) {
-    for (long i = 0; i < len - 1; i++) {
-        for (long j = 0; j < len - i - 1; j++) {
-            if (arr[j] > arr[j + 1]) {
-                long temp = arr[j];
-                arr[j] = arr[j + 1];
-                arr[j + 1] = temp;
+// bubble sort
+void myBubbleSort(Pointer base, int n, int size, CompareFunction cmp) {
+    char* data = (char*)base;
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (cmp(data + j * size, data + (j + 1) * size) > 0) {
+                swap_elements(data + j * size, data + (j + 1) * size, size);
             }
         }
     }
 }
 
-void selectionSort(long *arr, long len) {
-    for (long i = 0; i < len - 1; i++) {
-        long min_idx = i;
-        for (long j = i + 1; j < len; j++) {
-            if (arr[j] < arr[min_idx]) {
-                min_idx = j;
+// selection sort
+void mySelectionSort(Pointer base, int n, int size, CompareFunction cmp) {
+    char* data = (char*)base;
+    for (int i = 0; i < n - 1; i++) {
+        int small = i;
+        for (int j = i + 1; j < n; j++) {
+            if (cmp(data + j * size, data + small * size) < 0) {
+                small = j;
             }
         }
-        long temp = arr[min_idx];
-        arr[min_idx] = arr[i];
-        arr[i] = temp;
+        swap_elements(data + i * size, data + small * size, size);
     }
 }
 
-void merge(long *arr, long l, long m, long r) {
-    long n1 = m - l + 1;
-    long n2 = r - m;
-    long *L = (long *)malloc(n1 * sizeof(long));
-    long *R = (long *)malloc(n2 * sizeof(long));
-
-    for (long i = 0; i < n1; i++) L[i] = arr[l + i];
-    for (long j = 0; j < n2; j++) R[j] = arr[m + 1 + j];
-
-    long i = 0, j = 0, k = l;
-    while (i < n1 && j < n2) {
-        if (L[i] <= R[j]) arr[k++] = L[i++];
-        else arr[k++] = R[j++];
+// insertion sort
+void myInsertionSort(Pointer base, int n, int size, CompareFunction cmp) {
+    char* data = (char*)base;
+    void* key = malloc(size);
+    for (int i = 1; i < n; i++) {
+        memcpy(key, data + i * size, size);
+        int j = i - 1;
+        while (j >= 0 && cmp(data + j * size, key) > 0) {
+            memcpy(data + (j + 1) * size, data + j * size, size);
+            j--;
+        }
+        memcpy(data + (j + 1) * size, key, size);
     }
-    while (i < n1) arr[k++] = L[i++];
-    while (j < n2) arr[k++] = R[j++];
-    
-    free(L); free(R);
-}
-void mergeSort(long *arr, long l, long r) {
-    if (l < r) {
-        long m = l + (r - l) / 2;
-        mergeSort(arr, l, m);
-        mergeSort(arr, m + 1, r);
-        merge(arr, l, m, r);
-    }
-}
-void mergeSortWrapper(long *arr, long len) {
-    mergeSort(arr, 0, len - 1);
+    free(key);
 }
 
-long quickSortPartition(long *arr, long low, long high) { // lomuto partition scheme    
-    long pivot = arr[high]; 
-    long i = (low - 1);
-    for (long j = low; j < high; j++) {
-        if (arr[j] < pivot) {
+// shell sort
+void myShellSort(Pointer base, int n, int size, CompareFunction cmp) {
+    char* data = (char*)base;
+    void* temp = malloc(size);
+    for (int gap = n / 2; gap > 0; gap /= 2) {
+        for (int i = gap; i < n; i++) {
+            memcpy(temp, data + i * size, size);
+            int j;
+            for (j = i; j >= gap && cmp(data + (j - gap) * size, temp) > 0; j -= gap) {
+                memcpy(data + j * size, data + (j - gap) * size, size);
+            }
+            memcpy(data + j * size, temp, size);
+        }
+    }
+    free(temp);
+}
+
+// quick sort helper to split array
+int partition(char* data, int low, int high, int size, CompareFunction cmp) {
+    void* pivot = data + high * size;
+    int i = low - 1;
+    for (int j = low; j < high; j++) {
+        if (cmp(data + j * size, pivot) < 0) {
             i++;
-            long temp = arr[i];
-            arr[i] = arr[j];
-            arr[j] = temp;
+            swap_elements(data + i * size, data + j * size, size);
         }
     }
-    long temp = arr[i + 1];
-    arr[i + 1] = arr[high];
-    arr[high] = temp;
-    return (i + 1);
+    swap_elements(data + (i + 1) * size, data + high * size, size);
+    return i + 1;
 }
 
-void quickSort(long *arr, long low, long high) {
+// the recursive part of quick sort
+void quickSortRecursive(char* data, int low, int high, int size, CompareFunction cmp) {
     if (low < high) {
-        long pi = quickSortPartition(arr, low, high);
-        quickSort(arr, low, pi - 1);
-        quickSort(arr, pi + 1, high);
-    }
-}
-void quickSortWrapper(long *arr, long len) {
-    quickSort(arr, 0, len - 1);
-}
-
-
-
-
-void generateArray(long *arr, long len) {
-    for (long i = 0; i < len; i++) {
-        arr[i] = rand() % 1000;
+        int p = partition(data, low, high, size, cmp);
+        quickSortRecursive(data, low, p - 1, size, cmp);
+        quickSortRecursive(data, p + 1, high, size, cmp);
     }
 }
 
-void printArray(long *arr, long len) {
-    printf("\n [ ");
-    for (long i = 0; i < len; i++) {
-        printf("%ld%s", arr[i], ", ");
-    }
-    printf(" ]\n");
+// quick sort
+void myQuickSort(Pointer base, int n, int size, CompareFunction cmp) {
+    quickSortRecursive((char*)base, 0, n - 1, size, cmp);
 }
 
-double monteCarlo(long totalNrOfSimulations, void (*sortFunc)(long *, long), long *arr, long len) {
-    double totalTime = 0;
+// radix sort helper
+int getMax(int* arr, int n) {
+    int mx = arr[0];
+    for (int i = 1; i < n; i++)
+        if (arr[i] > mx) mx = arr[i];
+    return mx;
+}
+
+// radix sort helper
+void countSort(int* arr, int n, int exp) {
+    int* output = malloc(n * sizeof(int));
+    int i, count[10] = {0};
+
+    for (i = 0; i < n; i++)
+        count[(arr[i] / exp) % 10]++;
+
+    for (i = 1; i < 10; i++)
+        count[i] += count[i - 1];
+
+    for (i = n - 1; i >= 0; i--) {
+        output[count[(arr[i] / exp) % 10] - 1] = arr[i];
+        count[(arr[i] / exp) % 10]--;
+    }
+
+    for (i = 0; i < n; i++)
+        arr[i] = output[i];
     
-    for (long i = 0; i < totalNrOfSimulations; i++) {
-        long *arrCopy = (long *)malloc(len * sizeof(long));
-        if (!arrCopy) return -1.0;
-        
-        memcpy(arrCopy, arr, len * sizeof(long));
+    free(output);
+}
 
-        clock_t start = clock();
-        sortFunc(arrCopy, len);
-        clock_t end = clock();
+// radix sort
+void myRadixSort(Pointer base, int n, int size, CompareFunction cmp) {
+    if (size != sizeof(int)) return;
 
-        totalTime += (double)(end - start) / CLOCKS_PER_SEC;
-        free(arrCopy);
+    int* arr = (int*)base;
+    int m = getMax(arr, n);
+
+    for (int exp = 1; m / exp > 0; exp *= 10)
+        countSort(arr, n, exp);
+}
+
+int compareInts(const void* a, const void* b) {
+    return (*(int*)a - *(int*)b);
+}
+
+int compareStrings(const void* a, const void* b) {
+    return strcmp(*(char**)a, *(char**)b);
+}
+
+void fillRandom(int* a, int n) {
+    for (int i = 0; i < n; i++) a[i] = rand() % 1000;
+}
+
+void fillNearlySorted(int* a, int n) {
+    for (int i = 0; i < n; i++) a[i] = i;
+    for (int i = 0; i < 10; i++) {
+        int r1 = rand() % n;
+        int r2 = rand() % n;
+        int t = a[r1]; a[r1] = a[r2]; a[r2] = t;
     }
-    return totalTime / (double)totalNrOfSimulations;
+}
+
+// runs the sort and saves result to db
+void runTest(const char* dataset_name, const char* algo_name, void (*sortFunc)(Pointer, int, int, CompareFunction), void* data, int n, int size, CompareFunction cmp) {
+    void* copy = malloc(n * size);
+    memcpy(copy, data, n * size);
+    
+    clock_t start = clock();
+    sortFunc(copy, n, size, cmp);
+    clock_t end = clock();
+    
+    double time_taken = (double)(end - start) / CLOCKS_PER_SEC;
+    printf("%-20s took %f seconds\n", algo_name, time_taken);
+    
+    save_to_db(dataset_name, algo_name, n, time_taken);
+    
+    free(copy);
 }
 
 int main() {
-    srand((unsigned int)time(NULL));
+    srand(time(NULL));
+    int n = 2000;
     
-    long n = 100000; 
-    long simulations = 5;
-    long *arrayStart = (long *)malloc(n * sizeof(long));
+    printf("--- start sort comparison ---\n");
+    printf("array size: %d\n\n", n);
+
+    int* numbers = malloc(n * sizeof(int));
     
-    if (!arrayStart) {
-        return 1;
+    // random number tests
+    fillRandom(numbers, n);
+    printf("testing: random numbers\n");
+    runTest("Random Numbers", "Bubble Sort", myBubbleSort, numbers, n, sizeof(int), compareInts);
+    runTest("Random Numbers", "Selection Sort", mySelectionSort, numbers, n, sizeof(int), compareInts);
+    runTest("Random Numbers", "Insertion Sort", myInsertionSort, numbers, n, sizeof(int), compareInts);
+    runTest("Random Numbers", "Shell Sort", myShellSort, numbers, n, sizeof(int), compareInts);
+    runTest("Random Numbers", "Quick Sort", myQuickSort, numbers, n, sizeof(int), compareInts);
+    runTest("Random Numbers", "Radix Sort", myRadixSort, numbers, n, sizeof(int), compareInts);
+    printf("\n");
+
+    // nearly sorted tests
+    fillNearlySorted(numbers, n);
+    printf("testing: nearly sorted\n");
+    runTest("Nearly Sorted", "Bubble Sort", myBubbleSort, numbers, n, sizeof(int), compareInts);
+    runTest("Nearly Sorted", "Selection Sort", mySelectionSort, numbers, n, sizeof(int), compareInts);
+    runTest("Nearly Sorted", "Insertion Sort", myInsertionSort, numbers, n, sizeof(int), compareInts);
+    runTest("Nearly Sorted", "Shell Sort", myShellSort, numbers, n, sizeof(int), compareInts);
+    runTest("Nearly Sorted", "Quick Sort", myQuickSort, numbers, n, sizeof(int), compareInts);
+    runTest("Nearly Sorted", "Radix Sort", myRadixSort, numbers, n, sizeof(int), compareInts);
+    printf("\n");
+
+    // string tests
+    printf("testing: random strings\n");
+    char** words = malloc(n * sizeof(char*));
+    for (int i = 0; i < n; i++) {
+        words[i] = malloc(10);
+        sprintf(words[i], "str%d", rand() % 1000);
     }
-
-    generateArray(arrayStart, n);
+    runTest("Random Strings", "Bubble Sort", myBubbleSort, words, n, sizeof(char*), compareStrings);
+    runTest("Random Strings", "Selection Sort", mySelectionSort, words, n, sizeof(char*), compareStrings);
+    runTest("Random Strings", "Insertion Sort", myInsertionSort, words, n, sizeof(char*), compareStrings);
+    runTest("Random Strings", "Shell Sort", myShellSort, words, n, sizeof(char*), compareStrings);
+    runTest("Random Strings", "Quick Sort", myQuickSort, words, n, sizeof(char*), compareStrings);
+    //radix only on numbers
     
-    double avgSeconds = monteCarlo(simulations, bubbleSort, arrayStart, n);
+    for (int i = 0; i < n; i++) free(words[i]);
+    free(words);
+    free(numbers);
 
-    // printArray(arrayStart, n);
-    printf("Average Time over %ld simulations: %f seconds\n", simulations, avgSeconds);
-
-
-    free(arrayStart);
+    printf("\ndone!\n");
     return 0;
 }
